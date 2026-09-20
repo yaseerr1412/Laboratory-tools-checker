@@ -8,9 +8,9 @@
 <!-- SheetJS Library for Excel Parsing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-<!-- Firebase v9 Compatibility SDKs -->
+<!-- Firebase v9 Compatibility SDKs (App & Firestore) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
 // Initialize Firebase Configuration
@@ -26,7 +26,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
-const database = firebase.database();
+const db = firebase.firestore();
 </script>
 
 <style>
@@ -45,7 +45,9 @@ header{background:linear-gradient(135deg,#660707,#8f1111 68%,#a46f00);color:#fff
 label{font-size:12.5px;font-weight:800;display:block;margin:0 0 5px}input,select,textarea{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font:inherit}textarea{min-height:70px;resize:vertical}.small{font-size:12px;color:var(--muted)}
 .btns,.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.toolbar{margin:0 0 10px}.toolbar input,.toolbar select{max-width:290px}button{border:0;border-radius:7px;padding:9px 12px;font-weight:800;cursor:pointer}.primary{background:var(--maroon);color:#fff}.secondary{background:#e8edf4;color:#551010}.good{background:var(--green);color:#fff}.warn{background:var(--orange);color:#fff}.bad{background:var(--red);color:#fff}
 .table-wrap{max-height:530px;overflow:auto;border:1px solid var(--line);border-radius:9px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #e7eaf0;text-align:left;vertical-align:top}th{background:#f0e7e7;color:#651010;position:sticky;top:0;z-index:1}.num{text-align:right;white-space:nowrap}
-.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}.available{background:#dcfce7;color:#166534}.borrowed{background:#dbeafe;color:#1d4ed8}.damaged{background:#ffedd5;color:#9a3412}.lost{background:#fee2e2;color:#991b1b}.maintenance{background:#f3e8ff;color:#6b21a8}.consumable{background:#fef3c7;color:#92400e}.non-consumable{background:#e0e7ff;color:#3730a3}
+.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}.available{background:#dcfce7;color:#166534}.borrowed{background:#dbeafe;color:#1d4ed8}.damaged{background:#ffedd5;color:#9a3412}.lost{background:#fee2e2;color:#991b1b}.maintenance{background:#f3e8ff;color:#6b21a8}
+.autocomplete{position:relative}.suggestions{display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #cbd5e1;border-radius:7px;box-shadow:0 8px 20px rgba(0,0,0,.12);max-height:220px;overflow:auto;z-index:30}.suggestions.show{display:block}.suggestion{padding:9px 10px;border-bottom:1px solid #eef1f5;cursor:pointer}.suggestion:hover{background:#fff5e6}
+.borrow-cart{margin-top:12px;border:1px solid #d9dee8;border-radius:9px;overflow:auto}.cart-empty{text-align:center;color:#6b7280;padding:14px}
 .import-box{border:2px dashed var(--line);padding:20px;border-radius:11px;background:#fafbfc;text-align:center;margin-bottom:15px}
 footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
 @media(max-width:1050px){.header-inner{grid-template-columns:150px 1fr 150px}.logo{width:65px;height:65px}.grid{grid-template-columns:repeat(3,1fr)}.row4{grid-template-columns:repeat(2,1fr)}}
@@ -77,7 +79,7 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
 
 <div class="wrap">
   <div class="notice">
-    <strong>System Ready:</strong> Logos are saved locally in KB size. Excel student parsing operates 100% client-side without overloading your database.
+    <strong>Cloud Sync Active:</strong> Student and inventory datasets are synced real-time with Google Cloud Firestore across all connected devices.
   </div>
 
   <div class="tabs">
@@ -91,31 +93,56 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
   <!-- Dashboard Panel -->
   <div id="dashboardPanel" class="panel active">
     <div class="grid">
-      <div class="card"><div class="stat" id="statTotalTools">0</div><div class="stat-label">Total Tools</div></div>
-      <div class="card"><div class="stat" id="statAvailable">0</div><div class="stat-label">Available</div></div>
-      <div class="card"><div class="stat" id="statBorrowed">0</div><div class="stat-label">Borrowed</div></div>
-      <div class="card"><div class="stat" id="statDamaged">0</div><div class="stat-label">Damaged</div></div>
-      <div class="card"><div class="stat" id="statLost">0</div><div class="stat-label">Lost</div></div>
+      <div class="card"><div class="stat" id="statTotalTools">0</div><div class="stat-label">Total Inventory Types</div></div>
+      <div class="card"><div class="stat" id="statAvailable">0</div><div class="stat-label">Available Units</div></div>
+      <div class="card"><div class="stat" id="statBorrowed">0</div><div class="stat-label">Borrowed Units</div></div>
+      <div class="card"><div class="stat" id="statDamaged">0</div><div class="stat-label">Damaged / Repair</div></div>
+      <div class="card"><div class="stat" id="statLost">0</div><div class="stat-label">Lost Units</div></div>
       <div class="card"><div class="stat" id="statStudents">0</div><div class="stat-label">Enrolled Students</div></div>
     </div>
   </div>
 
-  <!-- Borrowing Panel -->
+  <!-- Borrowing Panel (Multi-Tool Shopping Cart Enabled) -->
   <div id="borrowingPanel" class="panel">
     <div class="card">
-      <h2>Borrow / Issue Tools</h2>
+      <h2>Multi-Tool Borrowing System</h2>
       <div class="row">
-        <div>
-          <label>Student ID or Name</label>
-          <input type="text" id="borrowStudentSearch" placeholder="Type ID or Name..." />
+        <!-- Student Autocomplete -->
+        <div class="autocomplete">
+          <label>Select Student (Search ID / Name)</label>
+          <input type="text" id="borrowStudentSearch" placeholder="Type student ID or name..." oninput="searchStudents(this.value)" autocomplete="off" />
+          <div id="studentSuggestions" class="suggestions"></div>
+          <div id="selectedStudentCard" style="margin-top:8px; font-weight:bold; color:var(--maroon);">No student selected.</div>
         </div>
-        <div>
-          <label>Tool Barcode / Search</label>
-          <input type="text" id="borrowToolSearch" placeholder="Type Tool Code or Name..." />
+
+        <!-- Tool Autocomplete -->
+        <div class="autocomplete">
+          <label>Add Tool to Cart (Search Tool Name / Barcode)</label>
+          <input type="text" id="borrowToolSearch" placeholder="Type tool code or description..." oninput="searchTools(this.value)" autocomplete="off" />
+          <div id="toolSuggestions" class="suggestions"></div>
         </div>
       </div>
-      <div class="btns">
-        <button type="button" class="primary">Issue Tool</button>
+
+      <h3 style="margin-top:20px;">Requested Tools Cart</h3>
+      <div class="borrow-cart">
+        <table>
+          <thead>
+            <tr>
+              <th>Tool Code</th>
+              <th>Tool Name</th>
+              <th>In-Stock</th>
+              <th>Borrow Qty</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="cartTableBody">
+            <tr><td colspan="5" class="cart-empty">Cart is empty. Search and add tools above.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="btns" style="margin-top:15px;">
+        <button type="button" class="good" onclick="processMultiBorrow()">Confirm &amp; Issue Tools</button>
       </div>
     </div>
   </div>
@@ -125,8 +152,7 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
     <div class="card">
       <h2>Tool Inventory</h2>
       <div class="toolbar">
-        <input type="text" placeholder="Search Inventory..." />
-        <button class="primary">+ Add New Tool</button>
+        <input type="text" id="inventorySearch" placeholder="Search Tool Code, Name or Category..." onkeyup="renderInventoryTable()" />
       </div>
       <div class="table-wrap">
         <table>
@@ -135,12 +161,14 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
               <th>Tool Code</th>
               <th>Name</th>
               <th>Category</th>
-              <th>Qty</th>
+              <th>Total Qty</th>
+              <th>Available</th>
+              <th>Borrowed</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody">
-            <tr><td colspan="5" style="text-align:center;">No inventory items available.</td></tr>
+            <tr><td colspan="7" style="text-align:center;">Loading Firestore Inventory...</td></tr>
           </tbody>
         </table>
       </div>
@@ -150,9 +178,9 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
   <!-- Student Database Panel -->
   <div id="studentPanel" class="panel">
     <div class="card">
-      <h2>Student Database</h2>
+      <h2>Enrolled Student Database</h2>
       <div class="toolbar">
-        <input type="text" id="studentSearchInput" placeholder="Search Students..." onkeyup="renderStudentsTable()" />
+        <input type="text" id="studentSearchInput" placeholder="Search Student ID, Name or Section..." onkeyup="renderStudentsTable()" />
       </div>
       <div class="table-wrap">
         <table>
@@ -160,13 +188,13 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
             <tr>
               <th>Student ID</th>
               <th>Full Name</th>
-              <th>Course / Year</th>
-              <th>Section</th>
+              <th>Course</th>
+              <th>Year &amp; Section</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="studentTableBody">
-            <tr><td colspan="5" style="text-align:center;">No student records imported yet.</td></tr>
+            <tr><td colspan="5" style="text-align:center;">Loading Firestore Student Database...</td></tr>
           </tbody>
         </table>
       </div>
@@ -175,29 +203,47 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
 
   <!-- Import & Settings Panel -->
   <div id="importPanel" class="panel">
+    <!-- Student Excel Importer to Firestore -->
     <div class="card">
-      <h2>Parse Student Data from Excel File (Client-Side)</h2>
-      <p class="small">Upload an Excel spreadsheet containing student lists (`.xlsx`, `.xls`, `.csv`). The system will parse the records locally in your browser without storing the raw Excel file in the database.</p>
+      <h2>Import &amp; Sync Student Database to Cloud Firestore</h2>
+      <p class="small">Upload an Excel spreadsheet (`.xlsx`, `.xls`, `.csv`). Student records are extracted and batch-uploaded directly to **Cloud Firestore**, syncing real-time across all devices.</p>
       
       <div class="import-box">
-        <label for="excelFile">Select Student Excel File:</label>
-        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="max-width:400px; margin: 10px auto;" />
+        <label for="studentExcelFile">Select Student Excel File:</label>
+        <input type="file" id="studentExcelFile" accept=".xlsx, .xls, .csv" style="max-width:400px; margin: 10px auto;" />
         
         <div class="btns" style="justify-content:center; margin-top:10px;">
-          <button type="button" class="good" onclick="parseStudentExcel()">Parse &amp; Extract Student Records</button>
+          <button type="button" class="good" onclick="parseAndSyncStudents()">Extract &amp; Sync Students to Firestore</button>
         </div>
       </div>
-      <div id="uploadStatus" style="font-weight:bold; text-align:center;"></div>
+      <div id="studentUploadStatus" style="font-weight:bold; text-align:center;"></div>
     </div>
 
+    <!-- Inventory Excel Importer to Firestore -->
     <div class="card" style="margin-top:15px;">
-      <h2>Manage Header Logos</h2>
-      <p class="small">Click any logo image in the header above or click the buttons below to customize header logos. Images are compressed automatically to kilobytes (KB).</p>
+      <h2>Import &amp; Sync Tool Inventory to Cloud Firestore</h2>
+      <p class="small">Upload an Excel spreadsheet (`.xlsx`, `.xls`, `.csv`) containing tool codes, names, categories, and quantities.</p>
+      
+      <div class="import-box">
+        <label for="inventoryExcelFile">Select Tool Inventory Excel File:</label>
+        <input type="file" id="inventoryExcelFile" accept=".xlsx, .xls, .csv" style="max-width:400px; margin: 10px auto;" />
+        
+        <div class="btns" style="justify-content:center; margin-top:10px;">
+          <button type="button" class="primary" onclick="parseAndSyncInventory()">Extract &amp; Sync Tools to Firestore</button>
+        </div>
+      </div>
+      <div id="inventoryUploadStatus" style="font-weight:bold; text-align:center;"></div>
+    </div>
+
+    <!-- Header Logo Settings -->
+    <div class="card" style="margin-top:15px;">
+      <h2>Header Logo Customization</h2>
+      <p class="small">Customize system logos. Images are optimized and compressed locally to prevent performance lag.</p>
       <div class="btns">
         <button class="secondary" onclick="triggerLogoUpload('logoLeft')">Change Left Logo</button>
         <button class="secondary" onclick="triggerLogoUpload('logoCenter')">Change Center Logo</button>
         <button class="secondary" onclick="triggerLogoUpload('logoRight')">Change Right Logo</button>
-        <button class="bad" onclick="resetLogos()">Reset Logos to Default</button>
+        <button class="bad" onclick="resetLogos()">Reset Logos</button>
       </div>
     </div>
   </div>
@@ -208,8 +254,11 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
 </footer>
 
 <script>
-// Global In-Memory Student Data Array
+// Global Data Arrays (Realtime Sync)
 let studentDatabase = [];
+let inventoryDatabase = [];
+let selectedStudent = null;
+let borrowingCart = [];
 
 // System Navigation Tabs
 function switchTab(evt, panelId) {
@@ -223,150 +272,331 @@ function switchTab(evt, panelId) {
 }
 
 // ----------------------------------------------------
-// 1. DYNAMIC LOGO UPLOADER & KB IMAGE COMPRESSION
+// 1. REALTIME FIRESTORE LISTENERS
 // ----------------------------------------------------
-function triggerLogoUpload(logoId) {
-  const inputId = 'input' + logoId.charAt(0).toUpperCase() + logoId.slice(1);
-  document.getElementById(inputId).click();
-}
+function initFirestoreSync() {
+  // Sync Students Collection
+  db.collection('students').onSnapshot(snapshot => {
+    studentDatabase = [];
+    snapshot.forEach(doc => {
+      studentDatabase.push({ firestoreId: doc.id, ...doc.data() });
+    });
+    renderStudentsTable();
+    document.getElementById('statStudents').innerText = studentDatabase.length;
+  }, err => console.error("Firestore Students Listener Error:", err));
 
-function handleLogoChange(event, logoId) {
-  const file = event.target.files[0];
-  if (!file) return;
+  // Sync Inventory Collection
+  db.collection('inventory').onSnapshot(snapshot => {
+    inventoryDatabase = [];
+    let totalQty = 0, availQty = 0, borrowedQty = 0, damagedQty = 0, lostQty = 0;
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      // Compress Image to lightweight KB Base64 string via Canvas
-      const canvas = document.createElement('canvas');
-      const maxDim = 180; // Standardize logo resolution
-      let width = img.width;
-      let height = img.height;
+    snapshot.forEach(doc => {
+      const item = { firestoreId: doc.id, ...doc.data() };
+      inventoryDatabase.push(item);
 
-      if (width > height) {
-        if (width > maxDim) {
-          height = Math.round((height * maxDim) / width);
-          width = maxDim;
-        }
-      } else {
-        if (height > maxDim) {
-          width = Math.round((width * maxDim) / height);
-          height = maxDim;
-        }
-      }
+      availQty += Number(item.available || 0);
+      borrowedQty += Number(item.borrowed || 0);
+      damagedQty += Number(item.damaged || 0);
+      lostQty += Number(item.lost || 0);
+    });
 
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-
-      // Convert image to WebP/JPEG format with quality compression
-      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
-
-      // Update UI and Save to LocalStorage
-      document.getElementById(logoId).src = compressedBase64;
-      localStorage.setItem('ub_logo_' + logoId, compressedBase64);
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function loadSavedLogos() {
-  ['logoLeft', 'logoCenter', 'logoRight'].forEach(logoId => {
-    const saved = localStorage.getItem('ub_logo_' + logoId);
-    if (saved) {
-      document.getElementById(logoId).src = saved;
-    }
-  });
-}
-
-function resetLogos() {
-  ['logoLeft', 'logoCenter', 'logoRight'].forEach(logoId => {
-    localStorage.removeItem('ub_logo_' + logoId);
-  });
-  location.reload();
+    renderInventoryTable();
+    document.getElementById('statTotalTools').innerText = inventoryDatabase.length;
+    document.getElementById('statAvailable').innerText = availQty;
+    document.getElementById('statBorrowed').innerText = borrowedQty;
+    document.getElementById('statDamaged').innerText = damagedQty;
+    document.getElementById('statLost').innerText = lostQty;
+  }, err => console.error("Firestore Inventory Listener Error:", err));
 }
 
 // ----------------------------------------------------
-// 2. EXCEL STUDENT PARSER (Client-Side SheetJS)
+// 2. EXCEL PARSER & FIRESTORE BATCH SYNC
 // ----------------------------------------------------
-function parseStudentExcel() {
-  const fileInput = document.getElementById('excelFile');
-  const statusDiv = document.getElementById('uploadStatus');
+async function parseAndSyncStudents() {
+  const fileInput = document.getElementById('studentExcelFile');
+  const statusDiv = document.getElementById('studentUploadStatus');
 
   if (!fileInput.files || fileInput.files.length === 0) {
     statusDiv.style.color = "var(--red)";
-    statusDiv.innerText = "Please select an Excel file to parse.";
+    statusDiv.innerText = "Please select a Student Excel file first.";
     return;
   }
 
-  const file = fileInput.files[0];
   statusDiv.style.color = "var(--orange)";
-  statusDiv.innerText = "Reading and parsing student records locally...";
+  statusDiv.innerText = "Parsing spreadsheet and writing batch to Cloud Firestore...";
 
+  const file = fileInput.files[0];
   const reader = new FileReader();
-  reader.onload = function(e) {
+
+  reader.onload = async function(e) {
     try {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
-
-      // Read First Sheet
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-
-      // Extract JSON rows
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
       if (jsonData.length === 0) {
         statusDiv.style.color = "var(--red)";
-        statusDiv.innerText = "The selected file contains no rows.";
+        statusDiv.innerText = "No rows found in spreadsheet.";
         return;
       }
 
-      // Map rows into standardized student objects
-      studentDatabase = jsonData.map((row, idx) => {
-        return {
-          id: row['Student ID'] || row['ID'] || row['ID Number'] || `STU-${1000 + idx}`,
+      // Firestore Batch Upload
+      const batch = db.batch();
+      jsonData.forEach((row, idx) => {
+        const studentId = String(row['Student ID'] || row['ID'] || row['ID Number'] || `STU-${1000 + idx}`);
+        const docRef = db.collection('students').doc(studentId);
+        
+        batch.set(docRef, {
+          id: studentId,
           name: row['Full Name'] || row['Name'] || row['Student Name'] || 'N/A',
           course: row['Course'] || row['Program'] || 'AMT',
           section: row['Section'] || row['Year/Section'] || 'N/A',
-          status: row['Status'] || 'Enrolled'
-        };
+          status: row['Status'] || 'Enrolled',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
       });
 
-      // Update Database Table UI
-      renderStudentsTable();
-
-      // Sync data counters
-      document.getElementById('statStudents').innerText = studentDatabase.length;
-
+      await batch.commit();
       statusDiv.style.color = "var(--green)";
-      statusDiv.innerText = `Successfully parsed ${studentDatabase.length} student records locally!`;
+      statusDiv.innerText = `Success! Synchronized ${jsonData.length} students to Cloud Firestore!`;
       fileInput.value = "";
     } catch (err) {
       console.error(err);
       statusDiv.style.color = "var(--red)";
-      statusDiv.innerText = "Error parsing file. Ensure it is a valid .xlsx or .csv document.";
+      statusDiv.innerText = "Error syncing to Firestore: " + err.message;
     }
   };
 
   reader.readAsArrayBuffer(file);
 }
 
+async function parseAndSyncInventory() {
+  const fileInput = document.getElementById('inventoryExcelFile');
+  const statusDiv = document.getElementById('inventoryUploadStatus');
+
+  if (!fileInput.files || fileInput.files.length === 0) {
+    statusDiv.style.color = "var(--red)";
+    statusDiv.innerText = "Please select an Inventory Excel file first.";
+    return;
+  }
+
+  statusDiv.style.color = "var(--orange)";
+  statusDiv.innerText = "Parsing tool inventory and writing batch to Cloud Firestore...";
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = async function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+      const batch = db.batch();
+      jsonData.forEach((row, idx) => {
+        const toolCode = String(row['Tool Code'] || row['Code'] || `TL-${1000 + idx}`);
+        const totalQty = Number(row['Quantity'] || row['Total Qty'] || row['Qty'] || 1);
+        const docRef = db.collection('inventory').doc(toolCode);
+
+        batch.set(docRef, {
+          code: toolCode,
+          name: row['Tool Name'] || row['Name'] || 'Unassigned Tool',
+          category: row['Category'] || 'General',
+          totalQty: totalQty,
+          available: Number(row['Available'] || totalQty),
+          borrowed: Number(row['Borrowed'] || 0),
+          damaged: Number(row['Damaged'] || 0),
+          lost: Number(row['Lost'] || 0),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      });
+
+      await batch.commit();
+      statusDiv.style.color = "var(--green)";
+      statusDiv.innerText = `Success! Synchronized ${jsonData.length} tool records to Cloud Firestore!`;
+      fileInput.value = "";
+    } catch (err) {
+      console.error(err);
+      statusDiv.style.color = "var(--red)";
+      statusDiv.innerText = "Error syncing inventory: " + err.message;
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+// ----------------------------------------------------
+// 3. MULTI-TOOL BORROWING SYSTEM & CARTS
+// ----------------------------------------------------
+function searchStudents(query) {
+  const sugBox = document.getElementById('studentSuggestions');
+  if (!query.trim()) { sugBox.classList.remove('show'); return; }
+
+  const q = query.toLowerCase();
+  const matches = studentDatabase.filter(s => s.id.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+
+  if (matches.length === 0) { sugBox.classList.remove('show'); return; }
+
+  sugBox.innerHTML = matches.slice(0, 6).map(s => `
+    <div class="suggestion" onclick="selectStudent('${s.id}')">
+      <b>${s.id}</b> - ${s.name} (${s.section})
+    </div>
+  `).join('');
+  sugBox.classList.add('show');
+}
+
+function selectStudent(studentId) {
+  selectedStudent = studentDatabase.find(s => s.id === studentId);
+  document.getElementById('studentSuggestions').classList.remove('show');
+  document.getElementById('borrowStudentSearch').value = '';
+  document.getElementById('selectedStudentCard').innerText = `Selected Student: ${selectedStudent.id} - ${selectedStudent.name} (${selectedStudent.course} / ${selectedStudent.section})`;
+}
+
+function searchTools(query) {
+  const sugBox = document.getElementById('toolSuggestions');
+  if (!query.trim()) { sugBox.classList.remove('show'); return; }
+
+  const q = query.toLowerCase();
+  const matches = inventoryDatabase.filter(t => t.code.toLowerCase().includes(q) || t.name.toLowerCase().includes(q));
+
+  if (matches.length === 0) { sugBox.classList.remove('show'); return; }
+
+  sugBox.innerHTML = matches.slice(0, 6).map(t => `
+    <div class="suggestion" onclick="addToolToCart('${t.code}')">
+      <b>${t.code}</b> - ${t.name} (Available: ${t.available})
+    </div>
+  `).join('');
+  sugBox.classList.add('show');
+}
+
+function addToolToCart(toolCode) {
+  document.getElementById('toolSuggestions').classList.remove('show');
+  document.getElementById('borrowToolSearch').value = '';
+
+  const tool = inventoryDatabase.find(t => t.code === toolCode);
+  if (!tool) return;
+
+  if (tool.available <= 0) {
+    alert("This tool has zero available stock.");
+    return;
+  }
+
+  const existing = borrowingCart.find(c => c.code === toolCode);
+  if (existing) {
+    if (existing.qty < tool.available) {
+      existing.qty++;
+    } else {
+      alert("Cannot add more than available in-stock quantity.");
+    }
+  } else {
+    borrowingCart.push({ code: tool.code, name: tool.name, max: tool.available, qty: 1 });
+  }
+
+  renderCartTable();
+}
+
+function renderCartTable() {
+  const tbody = document.getElementById('cartTableBody');
+  if (borrowingCart.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="cart-empty">Cart is empty. Search and add tools above.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = borrowingCart.map((item, idx) => `
+    <tr>
+      <td><b>${item.code}</b></td>
+      <td>${item.name}</td>
+      <td>${item.max}</td>
+      <td>
+        <input type="number" value="${item.qty}" min="1" max="${item.max}" style="width:70px;" onchange="updateCartQty(${idx}, this.value)" />
+      </td>
+      <td><button type="button" class="bad" onclick="removeFromCart(${idx})">Remove</button></td>
+    </tr>
+  `).join('');
+}
+
+function updateCartQty(index, value) {
+  const val = parseInt(value) || 1;
+  borrowingCart[index].qty = Math.min(Math.max(1, val), borrowingCart[index].max);
+  renderCartTable();
+}
+
+function removeFromCart(index) {
+  borrowingCart.splice(index, 1);
+  renderCartTable();
+}
+
+async function processMultiBorrow() {
+  if (!selectedStudent) {
+    alert("Please select a student first.");
+    return;
+  }
+  if (borrowingCart.length === 0) {
+    alert("Your borrowing cart is empty.");
+    return;
+  }
+
+  try {
+    const batch = db.batch();
+    
+    borrowingCart.forEach(cartItem => {
+      const toolRef = db.collection('inventory').doc(cartItem.code);
+      const tool = inventoryDatabase.find(t => t.code === cartItem.code);
+
+      if (tool) {
+        const newAvailable = Math.max(0, tool.available - cartItem.qty);
+        const newBorrowed = tool.borrowed + cartItem.qty;
+
+        batch.update(toolRef, {
+          available: newAvailable,
+          borrowed: newBorrowed
+        });
+
+        // Record Borrowing Transaction Log
+        const logRef = db.collection('borrow_logs').doc();
+        batch.set(logRef, {
+          studentId: selectedStudent.id,
+          studentName: selectedStudent.name,
+          toolCode: cartItem.code,
+          toolName: cartItem.name,
+          quantity: cartItem.qty,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          status: 'Active'
+        });
+      }
+    });
+
+    await batch.commit();
+    alert(`Successfully issued ${borrowingCart.length} tool items to ${selectedStudent.name}!`);
+
+    // Reset Cart
+    borrowingCart = [];
+    selectedStudent = null;
+    document.getElementById('selectedStudentCard').innerText = "No student selected.";
+    renderCartTable();
+  } catch (err) {
+    console.error("Borrowing Transaction Error:", err);
+    alert("Failed to process transaction: " + err.message);
+  }
+}
+
+// ----------------------------------------------------
+// 4. UI RENDER TABLES
+// ----------------------------------------------------
 function renderStudentsTable() {
   const tbody = document.getElementById('studentTableBody');
-  const query = document.getElementById('studentSearchInput').value.toLowerCase();
+  const query = (document.getElementById('studentSearchInput').value || '').toLowerCase();
 
   const filtered = studentDatabase.filter(s => 
-    s.id.toString().toLowerCase().includes(query) ||
+    s.id.toLowerCase().includes(query) ||
     s.name.toLowerCase().includes(query) ||
     s.section.toLowerCase().includes(query)
   );
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No students found matching your criteria.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No students found in Firestore.</td></tr>`;
     return;
   }
 
@@ -381,9 +611,92 @@ function renderStudentsTable() {
   `).join('');
 }
 
-// Startup Initialization
+function renderInventoryTable() {
+  const tbody = document.getElementById('inventoryTableBody');
+  const query = (document.getElementById('inventorySearch').value || '').toLowerCase();
+
+  const filtered = inventoryDatabase.filter(t => 
+    t.code.toLowerCase().includes(query) ||
+    t.name.toLowerCase().includes(query) ||
+    t.category.toLowerCase().includes(query)
+  );
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No inventory items found in Firestore.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(t => `
+    <tr>
+      <td><b>${t.code}</b></td>
+      <td>${t.name}</td>
+      <td>${t.category}</td>
+      <td>${t.totalQty}</td>
+      <td><span class="badge available">${t.available}</span></td>
+      <td><span class="badge borrowed">${t.borrowed}</span></td>
+      <td>
+        <span class="badge ${t.available > 0 ? 'available' : 'damaged'}">
+          ${t.available > 0 ? 'In Stock' : 'Out of Stock'}
+        </span>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ----------------------------------------------------
+// 5. LOGO EDITING & KB COMPRESSION
+// ----------------------------------------------------
+function triggerLogoUpload(logoId) {
+  document.getElementById('input' + logoId.charAt(0).toUpperCase() + logoId.slice(1)).click();
+}
+
+function handleLogoChange(event, logoId) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxDim = 180;
+      let width = img.width, height = img.height;
+
+      if (width > height) {
+        if (width > maxDim) { height = Math.round((height * maxDim) / width); width = maxDim; }
+      } else {
+        if (height > maxDim) { width = Math.round((width * maxDim) / height); height = maxDim; }
+      }
+
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+      document.getElementById(logoId).src = compressedBase64;
+      localStorage.setItem('ub_logo_' + logoId, compressedBase64);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadSavedLogos() {
+  ['logoLeft', 'logoCenter', 'logoRight'].forEach(logoId => {
+    const saved = localStorage.getItem('ub_logo_' + logoId);
+    if (saved) document.getElementById(logoId).src = saved;
+  });
+}
+
+function resetLogos() {
+  ['logoLeft', 'logoCenter', 'logoRight'].forEach(logoId => localStorage.removeItem('ub_logo_' + logoId));
+  location.reload();
+}
+
+// Initialize Application
 window.addEventListener('DOMContentLoaded', () => {
   loadSavedLogos();
+  initFirestoreSync();
 });
 </script>
 
