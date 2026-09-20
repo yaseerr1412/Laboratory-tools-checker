@@ -5,18 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>UB AMT Tool Inventory, Borrowing & Student Database System</title>
 
-<!-- SheetJS Library -->
+<!-- SheetJS Library for Excel Parsing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-<!-- Firebase App & Services (v9 Compatibility Mode for Browser Scripting) -->
+<!-- Firebase v9 Compatibility SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <script>
-window.addEventListener('afterprint', () => document.body.classList.remove('printing-slip'));
-
-// Initialize Firebase with your provided configuration
+// Initialize Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyD5ad8LRIqvQhZrIGRB1aUtenThg9sN9to",
   authDomain: "laboratory-tool-inventory.firebaseapp.com",
@@ -26,10 +23,10 @@ const firebaseConfig = {
   appId: "1:689701201400:web:6495b0bcdb1eb76933220d"
 };
 
-// Initialize Firebase App, Database, and Storage
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 const database = firebase.database();
-const storage = firebase.storage();
 </script>
 
 <style>
@@ -37,7 +34,9 @@ const storage = firebase.storage();
 *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
 header{background:linear-gradient(135deg,#660707,#8f1111 68%,#a46f00);color:#fff;padding:18px 24px;border-bottom:5px solid var(--gold)}
 .header-inner{max-width:1450px;margin:auto;display:grid;grid-template-columns:240px 1fr 240px;align-items:center;gap:18px}
-.logo-side{display:flex;gap:10px;align-items:center}.logo-side.right{justify-content:flex-end}.logo{width:92px;height:92px;object-fit:contain;background:rgba(255,255,255,.96);border-radius:50%;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.logo-side{display:flex;gap:10px;align-items:center;position:relative}.logo-side.right{justify-content:flex-end}
+.logo{width:92px;height:92px;object-fit:contain;background:rgba(255,255,255,.96);border-radius:50%;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer;transition:transform 0.2s}
+.logo:hover{transform:scale(1.05);outline:2px dashed var(--gold)}
 .title{text-align:center}.title h1{font-size:27px;margin:0 0 5px}.title p{margin:3px 0;opacity:.94}.title .dept{font-weight:700;color:#ffe39a}
 .wrap{max-width:1450px;margin:auto;padding:18px}.notice{background:#fff8db;border:1px solid #efcf64;padding:10px 13px;border-radius:9px;margin-bottom:13px;font-size:13px}
 .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}.tab{border:0;border-radius:8px;padding:10px 13px;background:#e9edf3;color:#5f1212;font-weight:800;cursor:pointer}.tab.active{background:var(--maroon);color:#fff}.panel{display:none}.panel.active{display:block}
@@ -47,57 +46,10 @@ label{font-size:12.5px;font-weight:800;display:block;margin:0 0 5px}input,select
 .btns,.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.toolbar{margin:0 0 10px}.toolbar input,.toolbar select{max-width:290px}button{border:0;border-radius:7px;padding:9px 12px;font-weight:800;cursor:pointer}.primary{background:var(--maroon);color:#fff}.secondary{background:#e8edf4;color:#551010}.good{background:var(--green);color:#fff}.warn{background:var(--orange);color:#fff}.bad{background:var(--red);color:#fff}
 .table-wrap{max-height:530px;overflow:auto;border:1px solid var(--line);border-radius:9px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #e7eaf0;text-align:left;vertical-align:top}th{background:#f0e7e7;color:#651010;position:sticky;top:0;z-index:1}.num{text-align:right;white-space:nowrap}
 .badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}.available{background:#dcfce7;color:#166534}.borrowed{background:#dbeafe;color:#1d4ed8}.damaged{background:#ffedd5;color:#9a3412}.lost{background:#fee2e2;color:#991b1b}.maintenance{background:#f3e8ff;color:#6b21a8}.consumable{background:#fef3c7;color:#92400e}.non-consumable{background:#e0e7ff;color:#3730a3}
-.autocomplete{position:relative}.suggestions{display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #cbd5e1;border-radius:7px;box-shadow:0 8px 20px rgba(0,0,0,.12);max-height:250px;overflow:auto;z-index:30}.suggestions.show{display:block}.suggestion{padding:9px 10px;border-bottom:1px solid #eef1f5;cursor:pointer}.suggestion:hover{background:#fff5e6}.suggestion b{color:#651010}.selection-info{background:#f8fafc;border:1px solid #dbe2eb;padding:9px;border-radius:8px;margin-top:7px;font-size:12px;min-height:34px}
-.import-box{border:1px dashed #b9c1cc;padding:12px;border-radius:99px;background:#fafbfc}.muted-box{background:#f8fafc;border:1px solid #e0e6ed;padding:9px;border-radius:8px}.qtybar{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.qtypill{padding:3px 7px;border-radius:12px;background:#eef2f7;font-size:11px;font-weight:700}
+.import-box{border:2px dashed var(--line);padding:20px;border-radius:11px;background:#fafbfc;text-align:center;margin-bottom:15px}
 footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
 @media(max-width:1050px){.header-inner{grid-template-columns:150px 1fr 150px}.logo{width:65px;height:65px}.grid{grid-template-columns:repeat(3,1fr)}.row4{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){.header-inner{display:block;text-align:center}.logo-side,.logo-side.right{justify-content:center;margin:7px}.logo{width:58px;height:58px}.grid,.row,.row3,.row4{grid-template-columns:1fr}.title h1{font-size:21px}}
-
-.class-db-bar{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px}
-.db-chip{display:inline-block;background:#eef3f8;color:#183b66;border:1px solid #cbd5e1;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700;margin:2px}
-@media(max-width:760px){.class-db-bar{grid-template-columns:1fr}}
-
-.borrow-cart{margin-top:12px;border:1px solid #d9dee8;border-radius:9px;overflow:auto}
-.borrow-cart table{margin:0}
-.cart-empty{text-align:center;color:#6b7280;padding:14px}
-.preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:9999;align-items:center;justify-content:center;padding:18px}
-.preview-overlay.show{display:flex}
-.preview-box{background:#fff;border-radius:12px;max-width:980px;width:100%;max-height:92vh;overflow:auto;padding:18px;box-shadow:0 15px 45px rgba(0,0,0,.25)}
-.preview-box h2{margin-top:0}
-.preview-note{background:#fff7dc;border:1px solid #f3cf63;border-radius:8px;padding:10px;margin:10px 0}
-
-.print-slip-area{display:none}
-@media print{
-  body.printing-slip > *{display:none !important}
-  body.printing-slip #printSlipArea{
-    display:block !important;
-    position:static !important;
-    width:100% !important;
-    margin:0 !important;
-    padding:0 !important;
-    background:#fff !important;
-    color:#111 !important;
-  }
-  body.printing-slip #printSlipArea .print-page{width:auto;margin:0;padding:8mm}
-  body.printing-slip #printSlipArea .print-header{text-align:center;border-bottom:3px solid #7a0b0b;padding-bottom:8px;margin-bottom:14px}
-  body.printing-slip #printSlipArea .print-header h1{font-size:18px;margin:0;color:#7a0b0b}
-  body.printing-slip #printSlipArea .print-header h2{font-size:15px;margin:4px 0}
-  body.printing-slip #printSlipArea .print-header p{margin:2px 0;font-size:12px}
-  body.printing-slip #printSlipArea .slip-title{text-align:center;font-size:21px;font-weight:900;letter-spacing:1px;margin:15px 0}
-  body.printing-slip #printSlipArea table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px}
-  body.printing-slip #printSlipArea td,body.printing-slip #printSlipArea th{border:1px solid #444;padding:6px;text-align:left;vertical-align:top}
-  body.printing-slip #printSlipArea th{background:#f5eeee !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body.printing-slip #printSlipArea .section-title{font-weight:800;color:#7a0b0b;margin:13px 0 6px}
-  body.printing-slip #printSlipArea .signatures{display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:55px}
-  body.printing-slip #printSlipArea .sig{text-align:center}
-  body.printing-slip #printSlipArea .line{border-top:1px solid #222;padding-top:5px;font-size:12px}
-  body.printing-slip #printSlipArea .print-footer{margin-top:35px;font-size:10px;color:#555;text-align:center}
-}
-
-#bulkReturnTable input[type="checkbox"]{width:20px;height:20px;cursor:pointer}
-#bulkReturnTable input[type="number"]{min-width:75px}
-#bulkReturnTable select{min-width:135px}
-#bulkReturnTable tr:has(.return-check:checked){background:#f0f8f3}
 </style>
 </head>
 <body>
@@ -105,7 +57,8 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
 <header>
   <div class="header-inner">
     <div class="logo-side">
-      <img class="logo" src="data:image/jpeg;base64,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" alt="UB Logo">
+      <img id="logoLeft" class="logo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCADmAOYDASIAAhEBAxEB/8QAHQAAAgMBAAMBAAAAAAAAAAAAAAcFBggEAQIDCf/EAE0QAAEDAwQABAMFBgEGCwgDAAECAwQFBhEABxIhCBMxQRQiUROjMfAijJFTYXGBkqHR0v/aAAwideTUaNGjRRRo0aNFFGjRo0UUaNCv31Nq1NotMfqFVnMRIzDanXHXVYCUp9T+fqPT6j66odd3ZjxWZRoNKclhgtRlSZqjDbRJdUEoaIWAolPJKl9DikjGT1pneYhbWac1w4EjqfSukoUrRIpk655k+DT44fnzI8VoqCPMfcDaeR9Bkn1P01l65980KlVKns3tJqlYpwEaLBtiOpS3JKkpLjziW+RU21ywEq+XpXLkcYj26tuPVKu6/Z+2TlOZ+FKafU7pmBBQ8rn5klxsFThdVyCRlOcA5ICsaqV927tLdOZCDHAqIQDoDpm1O/AcDTxvD3Fb1pSbf1pwHJDTlYbceYdDBajoU6pbpx90gJB5r77SnJHqcAHXKrcm3A45hM9bLJDb76Yqihp4niGT7qcKiBxQFYJGcZ0gYNo7xuLpJXd1r2+xT4qorUWm01ctTIVxCnUrcKUqdITjJTgZV68jryztBeHwtOak703Eo099b7HkU+M2nmvlyWoEK5OHms8yeipWB3qsvfai3mhCmx/zVxPEJjaOJ3J10lynClcZp+jcWjBRQ9CqbK2kebLS4ykCG3x5c3VBXFII7wCVYB61927+oC+AV8c2p5REdtcRznISCAVoQBy4jIySBjIPuNZ9XsnWnIkuMnea9uD8n4vDiYqwpzkDl37v70fKkYOBhKRjAA16ubS7qMvz5NK3+qyZEtlLSnp1FjvLATnCUrSpJSjKlHCRnKic5716z9pCl/jb9zo4D8p4yfLTrXisMjn8K0tGue35b7rUerxFqZTzc+fAQMZPInoEe4PY99STLzMhhD7DqHWljKVoUFJUPqCPXWU0Wr4hqSuC23Udurmp8JkiyJLMmnttr9AspSFhasdAk9clHGTnXwi3/upbb1PVeO0NzRpDj6jLrlBWirpZGc8WI7RJbSehlSfTJIWo6sVp22Dp1bBH5Vgn/irKowOQmdAONNl2RTxrW+jWcrH8SNt195cCHcKEzRJLEehVNJNUex0S4lRQGgT33niBkkZ4hzwr2pr0t2FPxFlu4qLDajISSrPEq4A8fT3/qdWK07QWVwruirIv8AlUMp+O+8SCRPGm6mVp1irNo14SpKkhSSCD2CNedTVJUaNGjRRRo0aNFFGjRo0UUaNGjRRRo0aNFFGjRo0UUaNGq/d940azLdfqdVkILiW1KYhoWnz5axgBtpJOVKJKR19RrlSgkFSjAoqast40azLdfqdVkILiW1KYhoWnz5axgBtpJOVKJKR19RrlSgkFSjAoq" title="Click to edit Left Logo" onclick="triggerLogoUpload('logoLeft')" />
+      <input type="file" id="inputLogoLeft" accept="image/*" style="display:none;" onchange="handleLogoChange(event, 'logoLeft')">
     </div>
     <div class="title">
       <h1>TOOL INVENTORY &amp; BORROWING SYSTEM</h1>
@@ -113,27 +66,140 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
       <p>College of Engineering, Technology, Architecture and Fine Arts</p>
     </div>
     <div class="logo-side right">
-      <img class="logo" src="data:image/png;base64,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" alt="AMT Seal">
+      <img id="logoCenter" class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOYAAADmCAYAAADPavm7AAEAAElEQVR42uydd3hU5db2f3vv6ZNJJ9TQe++9d6SIQAApUkR6EVEsoBBEQKpSpKiASJEmvUMg9E7ovYYSSEifvsv3x0wiqOd8533P0eM5L8917StXJmXP7L3vZ611r7XuBa/Wq/VqvVqv1qv1ar1ar9ar9R+5pFeX4D9yiYDw69fGNUBqWBAx9n72z4SoKKSoKCRAvH8fAC3rZ/7/82q9Wq/W/2AJDRqgGzfOd/hBJGoaoiSCIIAkwZo1SJqGKPwKpoIA0q9gJ4oQFYWkrUGSJBD9/0Nbg5QF1Kzz+cH8av27bv6rS/DvX1FRSINL++7FN1fQ1q5Fk0RURf0t2DSfvcsLBAJPgFT/jyu+1pAaooS0dR+noO81eOwJs+6sU6c2ptJSSI89zUHgvv/3w4BgIAlIE0VQf3U+TUMQP3V+TUMQP3V+TUMQP" title="Click to edit Center Logo" onclick="triggerLogoUpload('logoCenter')" />
+      <input type="file" id="inputLogoCenter" accept="image/*" style="display:none;" onchange="handleLogoChange(event, 'logoCenter')">
+
+      <img id="logoRight" class="logo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCADmAOYDASIAAhEBAxEB/8QAHQAAAgMBAAMBAAAAAAAAAAAAAAcFBggEAQIDCf/EAE0QAAEDAwQABAMFBgEGCwgDAAECAwQFBhEABxIhCBMxQRQiUROjMfAijJFTYXGBkqHR0v/aAAwideTUaNGjRRRo0aNFFGjRo0UUaNCv31Nq1NotMfqFVnMRIzDanXHXVYCUp9T+fqPT6j66odd3ZjxWZRoNKclhgtRlSZqjDbRJdUEoaIWAolPJKl9DikjGT1pneYhbWac1w4EjqfSukoUrRIpk655k+DT44fnzI8VoqCPMfcDaeR9Bkn1P01l65980KlVKns3tJqlYpwEaLBtiOpS3JKkpLjziW+RU21ywEq+XpXLkcYj26tuPVKu6/Z+2TlOZ+FKafU7pmBBQ8rn5klxsFThdVyCRlOcA5ICsaqV927tLdOZCDHAqIQDoDpm1O/AcDTxvD3Fb1pSbf1pwHJDTlYbceYdDBajoU6pbpx90gJB5r77SnJHqcAHXKrcm3A45hM9bLJDb76Yqihp4niGT7qcKiBxQFYJGcZ0gYNo7xuLpJXd1r2+xT4qorUWm01ctTIVxCnUrcKUqdITjJTgZV68jryztBeHwtOak703Eo099b7HkU+M2nmvlyWoEK5OHms8yeipWB3qsvfai3mhCmx/zVxPEJjaOJ3J10lynClcZp+jcWjBRQ9CqbK2kebLS4ykCG3x5c3VBXFII7wCVYB61927+oC+AV8c2p5REdtcRznISCAVoQBy4jIySBjIPuNZ9XsnWnIkuMnea9uD8n4vDiYqwpzkDl37v70fKkYOBhKRjAA16ubS7qMvz5NK3+qyZEtlLSnp1FjvLATnCUrSpJSjKlHCRnKic5716z9pCl/jb9zo4D8p4yfLTrXisMjn8K0tGue35b7rUerxFqZTzc+fAQMZPInoEe4PY99STLzMhhD7DqHWljKVoUFJUPqCPXWU0Wr4hqSuC23Udurmp8JkiyJLMmnttr9AspSFhasdAk9clHGTnXwi3/upbb1PVeO0NzRpDj6jLrlBWirpZGc8WI7RJbSehlSfTJIWo6sVp22Dp1bBH5Vgn/irKowOQmdAONNl2RTxrW+jWcrH8SNt195cCHcKEzRJLEehVNJNUex0S4lRQGgT33niBkkZ4hzwr2pr0t2FPxFlu4qLDajISSrPEq4A8fT3/qdWK07QWVwruirIv8AlUMp+O+8SCRPGm6mVp1irNo14SpKkhSSCD2CNedTVJUaNGjRRRo0aNFFGjRo0UUaNGjRRRo0aNFFGjRo0UUaNGq/d940azLdfqdVkILiW1KYhoWnz5axgBtpJOVKJKR19RrlSgkFSjAoqast40azLdfqdVkILiW1KYhoWnz5axgBtpJOVKJKR19RrlSgkFSjAoq" title="Click to edit Right Logo" onclick="triggerLogoUpload('logoRight')" />
+      <input type="file" id="inputLogoRight" accept="image/*" style="display:none;" onchange="handleLogoChange(event, 'logoRight')">
     </div>
   </div>
 </header>
 
 <div class="wrap">
   <div class="notice">
-    <strong>Firebase Storage Active:</strong> When you upload a dataset, the file is securely saved to your Firebase Storage, and its record is updated in the Firebase Realtime Database.
+    <strong>System Ready:</strong> Logos are saved locally in KB size. Excel student parsing operates 100% client-side without overloading your database.
   </div>
 
-  <div class="card">
-    <h2>Data Import / Sync with Firebase</h2>
-    <div class="import-box">
-      <label for="excelFile">Select File (.xlsx, .xls, .csv):</label>
-      <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" />
-      
-      <div class="btns" style="margin-top:15px;">
-        <button type="button" class="primary" onclick="uploadToFirebase()">Upload &amp; Save to Firebase</button>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(event, 'dashboardPanel')">Dashboard</button>
+    <button class="tab" onclick="switchTab(event, 'borrowingPanel')">Borrowing / Return</button>
+    <button class="tab" onclick="switchTab(event, 'inventoryPanel')">Tool Inventory</button>
+    <button class="tab" onclick="switchTab(event, 'studentPanel')">Student Database</button>
+    <button class="tab" onclick="switchTab(event, 'importPanel')">Import &amp; Settings</button>
+  </div>
+
+  <!-- Dashboard Panel -->
+  <div id="dashboardPanel" class="panel active">
+    <div class="grid">
+      <div class="card"><div class="stat" id="statTotalTools">0</div><div class="stat-label">Total Tools</div></div>
+      <div class="card"><div class="stat" id="statAvailable">0</div><div class="stat-label">Available</div></div>
+      <div class="card"><div class="stat" id="statBorrowed">0</div><div class="stat-label">Borrowed</div></div>
+      <div class="card"><div class="stat" id="statDamaged">0</div><div class="stat-label">Damaged</div></div>
+      <div class="card"><div class="stat" id="statLost">0</div><div class="stat-label">Lost</div></div>
+      <div class="card"><div class="stat" id="statStudents">0</div><div class="stat-label">Enrolled Students</div></div>
+    </div>
+  </div>
+
+  <!-- Borrowing Panel -->
+  <div id="borrowingPanel" class="panel">
+    <div class="card">
+      <h2>Borrow / Issue Tools</h2>
+      <div class="row">
+        <div>
+          <label>Student ID or Name</label>
+          <input type="text" id="borrowStudentSearch" placeholder="Type ID or Name..." />
+        </div>
+        <div>
+          <label>Tool Barcode / Search</label>
+          <input type="text" id="borrowToolSearch" placeholder="Type Tool Code or Name..." />
+        </div>
+      </div>
+      <div class="btns">
+        <button type="button" class="primary">Issue Tool</button>
       </div>
     </div>
-    <div id="uploadStatus" style="margin-top:10px; font-weight:bold;"></div>
+  </div>
+
+  <!-- Inventory Panel -->
+  <div id="inventoryPanel" class="panel">
+    <div class="card">
+      <h2>Tool Inventory</h2>
+      <div class="toolbar">
+        <input type="text" placeholder="Search Inventory..." />
+        <button class="primary">+ Add New Tool</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tool Code</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Qty</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody">
+            <tr><td colspan="5" style="text-align:center;">No inventory items available.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Database Panel -->
+  <div id="studentPanel" class="panel">
+    <div class="card">
+      <h2>Student Database</h2>
+      <div class="toolbar">
+        <input type="text" id="studentSearchInput" placeholder="Search Students..." onkeyup="renderStudentsTable()" />
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Full Name</th>
+              <th>Course / Year</th>
+              <th>Section</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody">
+            <tr><td colspan="5" style="text-align:center;">No student records imported yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import & Settings Panel -->
+  <div id="importPanel" class="panel">
+    <div class="card">
+      <h2>Parse Student Data from Excel File (Client-Side)</h2>
+      <p class="small">Upload an Excel spreadsheet containing student lists (`.xlsx`, `.xls`, `.csv`). The system will parse the records locally in your browser without storing the raw Excel file in the database.</p>
+      
+      <div class="import-box">
+        <label for="excelFile">Select Student Excel File:</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="max-width:400px; margin: 10px auto;" />
+        
+        <div class="btns" style="justify-content:center; margin-top:10px;">
+          <button type="button" class="good" onclick="parseStudentExcel()">Parse &amp; Extract Student Records</button>
+        </div>
+      </div>
+      <div id="uploadStatus" style="font-weight:bold; text-align:center;"></div>
+    </div>
+
+    <div class="card" style="margin-top:15px;">
+      <h2>Manage Header Logos</h2>
+      <p class="small">Click any logo image in the header above or click the buttons below to customize header logos. Images are compressed automatically to kilobytes (KB).</p>
+      <div class="btns">
+        <button class="secondary" onclick="triggerLogoUpload('logoLeft')">Change Left Logo</button>
+        <button class="secondary" onclick="triggerLogoUpload('logoCenter')">Change Center Logo</button>
+        <button class="secondary" onclick="triggerLogoUpload('logoRight')">Change Right Logo</button>
+        <button class="bad" onclick="resetLogos()">Reset Logos to Default</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -142,46 +208,183 @@ footer{text-align:center;padding:20px;color:#6b7280;font-size:12px}
 </footer>
 
 <script>
-async function uploadToFirebase() {
+// Global In-Memory Student Data Array
+let studentDatabase = [];
+
+// System Navigation Tabs
+function switchTab(evt, panelId) {
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(t => t.classList.remove('active'));
+  panels.forEach(p => p.classList.remove('active'));
+
+  evt.currentTarget.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+// ----------------------------------------------------
+// 1. DYNAMIC LOGO UPLOADER & KB IMAGE COMPRESSION
+// ----------------------------------------------------
+function triggerLogoUpload(logoId) {
+  const inputId = 'input' + logoId.charAt(0).toUpperCase() + logoId.slice(1);
+  document.getElementById(inputId).click();
+}
+
+function handleLogoChange(event, logoId) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Compress Image to lightweight KB Base64 string via Canvas
+      const canvas = document.createElement('canvas');
+      const maxDim = 180; // Standardize logo resolution
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxDim) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        }
+      } else {
+        if (height > maxDim) {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Convert image to WebP/JPEG format with quality compression
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+
+      // Update UI and Save to LocalStorage
+      document.getElementById(logoId).src = compressedBase64;
+      localStorage.setItem('ub_logo_' + logoId, compressedBase64);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadSavedLogos() {
+  ['logoLeft', 'logoCenter', 'logoRight'].forEach(logoId => {
+    const saved = localStorage.getItem('ub_logo_' + logoId);
+    if (saved) {
+      document.getElementById(logoId).src = saved;
+    }
+  });
+}
+
+function resetLogos() {
+  ['logoLeft', 'logoCenter', 'logoRight'].forEach(logoId => {
+    localStorage.removeItem('ub_logo_' + logoId);
+  });
+  location.reload();
+}
+
+// ----------------------------------------------------
+// 2. EXCEL STUDENT PARSER (Client-Side SheetJS)
+// ----------------------------------------------------
+function parseStudentExcel() {
   const fileInput = document.getElementById('excelFile');
   const statusDiv = document.getElementById('uploadStatus');
 
   if (!fileInput.files || fileInput.files.length === 0) {
     statusDiv.style.color = "var(--red)";
-    statusDiv.innerText = "Please select a file first.";
+    statusDiv.innerText = "Please select an Excel file to parse.";
     return;
   }
 
   const file = fileInput.files[0];
   statusDiv.style.color = "var(--orange)";
-  statusDiv.innerText = "Uploading file to Firebase...";
+  statusDiv.innerText = "Reading and parsing student records locally...";
 
-  try {
-    // 1. Upload file to Firebase Storage
-    const storageRef = storage.ref('uploads/' + Date.now() + '_' + file.name);
-    const uploadTask = await storageRef.put(file);
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
 
-    // 2. Retrieve download URL from Storage
-    const downloadURL = await uploadTask.ref.getDownloadURL();
+      // Read First Sheet
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
 
-    // 3. Save Metadata to Realtime Database
-    const newRecordRef = database.ref('inventory_uploads').push();
-    await newRecordRef.set({
-      fileName: file.name,
-      fileSize: file.size,
-      downloadURL: downloadURL,
-      uploadedAt: firebase.database.ServerValue.TIMESTAMP
-    });
+      // Extract JSON rows
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-    statusDiv.style.color = "var(--green)";
-    statusDiv.innerText = "Success! Data uploaded and saved to Firebase.";
-    fileInput.value = ""; // Reset input
-  } catch (error) {
-    console.error("Firebase upload error: ", error);
-    statusDiv.style.color = "var(--red)";
-    statusDiv.innerText = "Error uploading data: " + error.message;
-  }
+      if (jsonData.length === 0) {
+        statusDiv.style.color = "var(--red)";
+        statusDiv.innerText = "The selected file contains no rows.";
+        return;
+      }
+
+      // Map rows into standardized student objects
+      studentDatabase = jsonData.map((row, idx) => {
+        return {
+          id: row['Student ID'] || row['ID'] || row['ID Number'] || `STU-${1000 + idx}`,
+          name: row['Full Name'] || row['Name'] || row['Student Name'] || 'N/A',
+          course: row['Course'] || row['Program'] || 'AMT',
+          section: row['Section'] || row['Year/Section'] || 'N/A',
+          status: row['Status'] || 'Enrolled'
+        };
+      });
+
+      // Update Database Table UI
+      renderStudentsTable();
+
+      // Sync data counters
+      document.getElementById('statStudents').innerText = studentDatabase.length;
+
+      statusDiv.style.color = "var(--green)";
+      statusDiv.innerText = `Successfully parsed ${studentDatabase.length} student records locally!`;
+      fileInput.value = "";
+    } catch (err) {
+      console.error(err);
+      statusDiv.style.color = "var(--red)";
+      statusDiv.innerText = "Error parsing file. Ensure it is a valid .xlsx or .csv document.";
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
 }
+
+function renderStudentsTable() {
+  const tbody = document.getElementById('studentTableBody');
+  const query = document.getElementById('studentSearchInput').value.toLowerCase();
+
+  const filtered = studentDatabase.filter(s => 
+    s.id.toString().toLowerCase().includes(query) ||
+    s.name.toLowerCase().includes(query) ||
+    s.section.toLowerCase().includes(query)
+  );
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No students found matching your criteria.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(s => `
+    <tr>
+      <td><b>${s.id}</b></td>
+      <td>${s.name}</td>
+      <td>${s.course}</td>
+      <td>${s.section}</td>
+      <td><span class="badge available">${s.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+// Startup Initialization
+window.addEventListener('DOMContentLoaded', () => {
+  loadSavedLogos();
+});
 </script>
 
 </body>
